@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" width="width=device-width, initial-scale=1.0">
+    <title>法学论文引用格式转换器</title>
+  <link href="./styles.css?inline" rel="stylesheet">
+    <script defer>
+        const currenthito = Date.now();
+        const starthito = new Date('2024-03-14T17:00:00').getTime();
+        const hitoDifference = currenthito - starthito;
+        const hitoDifferenceInMinutes = Math.floor(hitoDifference / (1000 * 60));
+        const visitorsPerTenMinutes = Math.floor(hitoDifferenceInMinutes / 10);
+        const currentVisitorCount = 10075 + visitorsPerTenMinutes;
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const visitorCountElement = document.getElementById("visitorCount");
+            if (visitorCountElement) {
+                visitorCountElement.textContent = "累计访客人数：" + currentVisitorCount + " 人";
+            }
+        });
+
+        function openNormalizationTool() {
+            window.open("https://pegaseius.github.io/quxuhao/", "_blank");
+        }
+
+        function openEndNoteTool() {
+            window.open('https://pegaseius.github.io/endnote/', '_blank'); // 打开 EndNote 转法学引注工具
+        }
+
+        function openReferenceTool() {
+            window.open('https://pegaseius.github.io/lawschoolreferencetest/', '_blank'); // 跳转一键排序
+        }
+
+        // 新增函数用于控制全选复选框的联动，保持原名称，与之前逻辑一致，无需变动
+        function toggleAllCheckboxes() {
+            var selectAllCheckbox = document.getElementById("selectAll");
+            var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = selectAllCheckbox.checked;
+            }
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const otherCheckboxes = document.querySelectorAll('input[type="checkbox"]:not(#selectAll)');
+
+        // 页面加载时，先手动触发一次全选框的 change 事件，来同步其他复选框状态
+        if (selectAllCheckbox) {
+            selectAllCheckbox.dispatchEvent(new Event('change'));
+        }
+
+        function toggleAllCheckboxes() {
+            const isChecked = selectAllCheckbox.checked;
+            otherCheckboxes.forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+        }
+});
+        // 整合文本清洗和格式转换逻辑的函数，名称为convertAndDisplay，与main.js中的对应函数协作
+        function convertAndDisplay() {
+            // 先进行文本清洗
+            let cleanedText = transformText();
+            // 将清洗后的文本传递给main.js中的函数进行格式转换，这里通过自定义事件触发机制来传递数据
+            const event = new CustomEvent('cleanedTextAvailable', { detail: { cleanedText: cleanedText } });
+            document.dispatchEvent(event);
+        }
+
+        function transformText() {
+            var inputCitations = document.getElementById("inputCitations").value;
+            var removeNumbersCheckbox = document.getElementById("removeNumbers");
+            var removeSpacesCheckbox = document.getElementById("removeSpaces");
+            var convertSymbolsCheckbox = document.getElementById("convertSymbols");
+            var convertNumbersCheckbox = document.getElementById("convertNumbers");
+            var removeExtraPunctuationCheckbox = document.getElementById("removeExtraPunctuation");
+            var splitJumpCitationsCheckbox = document.getElementById("splitJumpCitations");
+            var removeDOICheckbox = document.getElementById("removeDOI");
+            var outputCitations = document.getElementById("outputCitations");
+            var lines = inputCitations.split("\n");
+            var output = "";
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+
+                if (removeNumbersCheckbox.checked) {
+                    line = line.replace(/^\[\d+\]/, "").trim();
+                }
+                if (removeSpacesCheckbox.checked) {
+                    line = line.replace(/\s/g, "");
+                }
+                if (convertSymbolsCheckbox.checked) {
+                    line = convertFullwidthSymbolsToHalfwidth(line);
+                }
+                if (convertNumbersCheckbox.checked) {
+                    line = convertFullwidthNumbersToHalfwidth(line);
+                }
+                if (removeExtraPunctuationCheckbox.checked) {
+                    line = removeRedundantPunctuation(line);
+                }
+                if (splitJumpCitationsCheckbox.checked) {
+                    line = splitJumpCitations(line);
+                }
+                if (removeDOICheckbox.checked) {
+                    line = removeDOI(line);
+                }
+                output += line + "\n";
+            }
+
+            return output.trim();
+        }
+
+        function convertFullwidthSymbolsToHalfwidth(line) {
+            const conversions = {
+                '：': ':', '。': '.', '，': ',', '；': ';',
+                '（': '(', '）': ')', '［': '[', '］': ']', '．': '.'
+            };
+            return line.replace(/[：。，；（）［］．]/g, char => conversions[char] || char);
+        }
+
+        function convertFullwidthNumbersToHalfwidth(line) {
+            return line.replace(/[０-９]/g, char => String.fromCharCode(char.charCodeAt(0) - 0xFEE0));
+        }
+
+        function removeRedundantPunctuation(line) {
+            line = line.replace(/(?<=\d),(?=\()/g, "");
+            line = line.replace(/;{2,}/g, ";");
+            line = line.replace(/,{2,}/g, ",");
+            line = line.replace(/\.{2,}/g, ".");
+            return line;
+        }
+
+        function splitJumpCitations(line) {
+            const jumpCitationPattern = /\+(\d+(?:-\d+)?)/g;
+            let match;
+            let baseText = line.replace(jumpCitationPattern, '');
+            let additionalLines = "";
+
+            jumpCitationPattern.lastIndex = 0; // Reset regex index
+
+            while ((match = jumpCitationPattern.exec(line))!== null) {
+                let preText = line.substring(0, line.lastIndexOf(":", match.index) + 1);
+                additionalLines += preText + match[1] + ".\n";
+            }
+
+            return baseText + (additionalLines? "\n" + additionalLines : "");
+        }
+
+        function removeDOI(line) {
+            return line.replace(/DOI:.*/, "");
+        }
+
+    </script>
+    <style>
+     .button-container {
+            display: flex;
+            justify-content: center;
+        }
+        /* 普通按钮通用样式 */
+        button {
+            background-color: #701e5e; /* 按钮的背景颜色，此处为一个偏紫色调的颜色 */
+            border: none;
+            color: white; /* 文字颜色设为白色，与背景形成对比 */
+            padding: 15px 32px; /* 按钮内边距，控制按钮内容与边框的距离，使按钮看起来更饱满 */
+            text-align: center;
+            text-decoration: none;
+            display: block; /* 将按钮变为块级元素，使其独占一行，方便布局 */
+            font-size: 18px;
+            margin: 20px auto; /* 上下边距20像素，左右自动居中，让按钮在水平方向上居中显示 */
+            cursor: pointer;
+            border-radius: 20px; /* 较大的圆角，使按钮外观更圆润柔和 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 添加轻微阴影，增加按钮的立体感 */
+            position: relative; /* 让按钮相对自身定位，便于涟漪效果定位 */
+            overflow: hidden; /* 隐藏超出按钮范围的涟漪元素 */
+            z-index: 1; /* 提高按钮的层级，确保涟漪在按钮下方显示 */
+        }
+
+        button:hover {
+            background-color: #45a049; /* 鼠标悬停时按钮的背景颜色，换为另一种绿色，形成交互反馈 */
+            transform: translateY(-2px); /* 鼠标悬停时按钮向上稍微移动一点，增强交互的动感 */
+        }
+
+        /* 文本区域样式 */
+        textarea {
+            width: 90%;
+            height: 100px;
+            padding: 10px;
+            font-size: 18px;
+            border-radius: 10px;
+            border: 2px solid #701e5e;
+            margin: 0 auto;
+            display: block;
+            resize: vertical;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #45a049;
+        }
+
+        /* 复制按钮样式，复用部分按钮通用样式 */
+      .copy-button {
+            background-color: #701e5e;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            font-size: 18px;
+            margin: 20px auto;
+            cursor: pointer;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+      .copy-button:hover {
+            background-color: #45a049;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+      /* 版权信息样式 */
+.copyright-info {
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+    margin-top: 20px;
+    position: fixed; /* 将版权信息的定位方式设置为固定定位 */
+    bottom: 0; /* 使其距离页面底部的距离为0，也就是固定在底部 */
+    left: 0; /* 距离页面左侧距离为0，从最左边开始显示 */
+    right: 0; /* 距离页面右侧距离为0，铺满整个页面宽度 */
+    background-color: rgba(255, 255, 255, 0.5); /* 可以添加一个半透明的白色背景，增强可读性，可根据需求调整透明度 */
+    padding: 10px 0; /* 设置上下内边距，让内容在垂直方向上更舒适地显示，这里示例为上下各10px */
+}
+
+.copyright-info a {
+    color: inherit;
+    text-decoration: none;
+}
+    </style>
+
+</head>
+<body>
+  <!-- 内联 JavaScript -->
+  <script src="./main.js?inline"></script>
+    <br>
+    <div style="text-align:center;"><h1>法学论文引用格式转换器</h1></div>
+    <div style="text-align:center;">
+        <br>
+        <br>
+        <br>
+    </div>
+    <textarea id="inputCitations" rows="4" cols="50" placeholder="请在此输入原始引用（每个文献一行）"></textarea>
+    <br>
+    <div class="button-container">
+    <input type="checkbox" id="selectAll" onchange="toggleAllCheckboxes()" checked>
+    <label for="selectAll">全选</label><br>
+    <input type="checkbox" id="removeNumbers">
+    <label for="removeNumbers">去掉数字序号</label><br>
+    <input type="checkbox" id="removeSpaces">
+    <label for="removeSpaces">去除空格</label><br>
+    <input type="checkbox" id="convertSymbols">
+    <label for="convertSymbols">将全角符号转换为半角符号</label><br>
+    <input type="checkbox" id="convertNumbers">
+    <label for="convertNumbers">将全角数字转换为半角数字</label><br>
+    <input type="checkbox" id="removeExtraPunctuation">
+    <label for="removeExtraPunctuation">移除多余标点</label><br>
+    <input type="checkbox" id="splitJumpCitations">
+    <label for="splitJumpCitations">拆分跳跃引注</label><br>
+    <input type="checkbox" id="removeDOI">
+    <label for="removeDOI">去除DOI号及知网后缀</label><br>
+    </div>
+    <div class="button-container">
+        <button onclick="convertAndDisplay()">清洗转换</button>
+        <button class="copy-button" onclick="copyToClipboard()">一键复制</button>
+    </div>
+    <br>
+    <br>
+    <br>
+    <textarea id="outputTextarea" rows="4" cols="50" readonly placeholder="转换后的引用内容" style="resize: none; border: 1px solid #ccc; background-color: white; "></textarea>
+    <div class="button-container">
+    </div>
+    <div class="button-container">
+        <button onclick="openReferenceTool()">一键编号/排序工具</button>
+        <button onclick="openEndNoteTool()">EndNote转法学引注</button>
+    </div>
+    <br>
+<div class="copyright-info">
+    <a href="https://pegaseius.github.io/faxuezhuan/" target="_blank">改编自南京大学法学院Chollima格式转换器，小红书号：3895712578 中单兔法师</a>
+</div>    <script>
+        // 获取输入原始引用的文本框元素
+        const inputCitationsTextarea = document.getElementById('inputCitations');
+        // 获取转换后引用的文本框元素
+        const outputTextarea = document.getElementById('outputTextarea');
+
+        // 为输入原始引用的文本框添加输入事件监听器
+        inputCitationsTextarea.addEventListener('input', function () {
+            if (this.value.trim()!== '') {
+                this.placeholder = '';
+            } else {
+                this.placeholder = '请在此输入原始引用（每个文献一行）';
+            }
+        });
+
+        // 为转换后引用的文本框添加输入事件监听器
+        outputTextarea.addEventListener('input', function () {
+            if (this.value.trim()!== '') {
+                this.placeholder = '';
+            } else {
+                this.placeholder = '转换后的引用';
+            }
+        });
+    </script>
+    <script>
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(button => {
+            button.addEventListener('mousedown', function (e) {
+                // 获取鼠标点击位置相对于按钮的坐标
+                const x = e.pageX - this.getBoundingClientRect().left;
+                const y = e.pageY - this.getBoundingClientRect().top;
+
+                // 创建涟漪效果的伪元素
+                const ripple = document.createElement('span');
+                ripple.style.position = 'absolute';
+                ripple.style.width = '100%';
+                ripple.style.height = '100%';
+                ripple.style.top = `${y}px`; // 设置涟漪的顶部位置为鼠标点击的纵坐标
+                ripple.style.left = `${x}px`; // 设置涟漪的左侧位置为鼠标点击的横坐标
+                ripple.style.borderRadius = '50%';
+                ripple.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+                ripple.style.animationName = 'ripple'; // 明确设置动画名称
+                ripple.style.animationDuration = '0.4s'; // 设置动画持续时间，这里示例为0.5秒，可按需调整
+                ripple.style.animationTimingFunction = 'linear'; // 设置动画缓动函数为线性，让速度均匀
+                ripple.style.animationIterationCount = '1'; // 设置动画只执行一次
+                ripple.style.animationFillMode = 'forwards'; // 动画结束后保持最后一帧状态，确保涟漪消失
+
+                this.appendChild(ripple);
+
+                // 动画结束后移除涟漪元素，避免重复添加影响效果
+                ripple.addEventListener('animationend', function () {
+                    this.remove();
+                });
+            });
+        });
+
+        // 定义涟漪扩散的动画关键帧（通过JavaScript动态创建样式表规则来实现，确保在页面加载时就添加到文档中）
+        const styleSheet = document.createElement('style');
+        document.head.appendChild(styleSheet);
+        const keyframesRule = '@keyframes ripple { from { transform: translate(-50%, -50%) scale(0); opacity: 1; } to { transform: translate(-50%, -50%) scale(2.5); opacity: 0; } }';
+        styleSheet.sheet.insertRule(keyframesRule, 0);
+    </script>
+</body>
+
+</html>
