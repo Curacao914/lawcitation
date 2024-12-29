@@ -1,4 +1,4 @@
-# ckwxzhuanhuan
+# Legal_Citation_Assistant
 作者：北京大学法学院+中南财经政法大学刑事司法学院郭鑫
 改编自改编自南京大学法学院Chollima格式转换器，小红书号：3895712578 中单兔法师
 
