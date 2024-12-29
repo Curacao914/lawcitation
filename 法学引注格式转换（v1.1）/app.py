@@ -23,7 +23,7 @@ def call_ai():
 
         # 调用百炼 API
         api_response = Application.call(
-            api_key='sk-85f2e20f903b4c818661bbd3b1c20453',
+            api_key='',
             app_id='3cf439eac83f4b069061a7b20e05370d',
             prompt=prompt
         )
