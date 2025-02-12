@@ -1,0 +1,6 @@
+flask
+flask-cors
+dashscope
+requests
+psutil
+pywin32
