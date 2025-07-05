@@ -24,3 +24,9 @@
 3. 将启动按钮修改为`run.vbs`
 4. 请自行创建虚拟环境，并命名为`myenv`
 5. 血泪教训：**不要随便修改文件夹/文件名**
+## web更新日志（2025.07.05）
+1. 伟大，无须多言
+2. 通过[Replit](https://replit.com/@15090983909gx/lawcitation)创建后端
+3. 通过GitHub IO创建前端
+4. 使用[UPtimeRobot](uptimerobot.com)使后端保持激活状态（Replit在长期不访问后会休眠）
+5. 注意事项：API通过后端应用设置调整[左侧边栏- All Tools-Secrets]
