@@ -1,5 +1,0 @@
-flask
-flask-cors
-dashscope
-requests
-psutil
