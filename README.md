@@ -30,3 +30,6 @@
 3. 通过GitHub IO创建前端
 4. 使用[UPtimeRobot](uptimerobot.com)使后端保持激活状态（Replit在长期不访问后会休眠）
 5. 注意事项：API通过后端应用设置调整[左侧边栏- All Tools-Secrets]
+## web_pythonanywhere更新日志（2025.10.24）
+1. 在程序员节这个伟大的日子，终于彻底实现了使用pythonanywhere后端在线部署的伟大壮举
+2. 现在只需要每三个月在pythonanywhere激活一下即可
