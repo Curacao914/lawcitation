@@ -1,7 +1,7 @@
-// 用于接收从main.html传递过来的清洗后文本数据的变量
+// 用于接收传递过来的清洗后文本数据的变量
 let cleanedTextData;
 
-// 监听自定义事件，当main.html中完成文本清洗并触发事件时，获取清洗后的文本数据
+// 监听自定义事件，当完成文本清洗并触发事件时，获取清洗后的文本数据
 document.addEventListener('cleanedTextAvailable', function (event) {
     cleanedTextData = event.detail.cleanedText;
     convertAndDisplayWithCleanedText();
