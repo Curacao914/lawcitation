@@ -42,8 +42,6 @@
             let cleanedText = transformText();
             const event = new CustomEvent('cleanedTextAvailable', { detail: { cleanedText: cleanedText } });
             document.dispatchEvent(event);
-            // 同步更新输出框内容
-            document.getElementById('outputTextarea').value = cleanedText;
         }
         function transformText() {
             var inputCitations = document.getElementById("inputCitations").value;
@@ -437,12 +435,14 @@
         });
     </script>
     
-    <!-- AI转换功能逻辑 -->
+    <!-- AI转换功能逻辑（已优化：加载动画+输出框状态显示） -->
     <script>
         document.getElementById('assistantButton').onclick = function () {
             const inputText = document.getElementById('inputCitations').value;
             const savedApiKey = localStorage.getItem("userApiKey");
-            
+            const outputTextarea = document.getElementById('outputTextarea');
+            let loadingTimer; // 加载动画定时器（用于后续清除）
+
             // 输入校验
             if (!inputText.trim()) {
                 alert("请先输入需要处理的引用文本！");
@@ -452,9 +452,20 @@
                 alert("请先设置API Key（点击右上角“设置API Key”）！");
                 return;
             }
-            
+
+            // 初始化加载动画：动态“点点点”效果
+            let loadingText = "正在调用AI处理";
+            outputTextarea.value = loadingText + ".";
+            loadingTimer = setInterval(() => {
+                if (loadingText.endsWith("...")) {
+                    loadingText = "正在调用AI处理"; // 重置文本
+                } else {
+                    loadingText += "."; // 追加一个点
+                }
+                outputTextarea.value = loadingText; // 更新输出框显示
+            }, 500);
+
             // 发起AI请求
-            alert("正在调用AI处理，请稍候...");
             fetch('https://curacao914.pythonanywhere.com/api/call-ai', {
                 method: 'POST',
                 headers: { 
@@ -464,18 +475,21 @@
                 body: JSON.stringify({ prompt: inputText }),
             })
             .then(response => {
+                clearInterval(loadingTimer); // 无论成功/失败，先停止加载动画
                 if (!response.ok) throw new Error(`HTTP错误：${response.status}`);
                 return response.json();
             })
             .then(data => {
+                // 成功：直接在输出框显示结果（移除“转换完成”弹窗）
                 if (data.response) {
-                    document.getElementById('outputTextarea').value = data.response;
-                    alert("AI转换完成！");
+                    outputTextarea.value = data.response;
                 } else {
                     throw new Error(data.error || "未获取到转换结果");
                 }
             })
             .catch(error => {
+                // 失败：输出框显示错误信息，保留错误弹窗便于排查
+                outputTextarea.value = `AI转换失败：${error.message}`;
                 alert(`AI转换失败：${error.message}\n请检查API Key是否有效或网络连接是否正常`);
             });
         };
