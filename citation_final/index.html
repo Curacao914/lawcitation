@@ -373,11 +373,18 @@
                 <button onclick="convertAndDisplay()">
                     <i class="fa fa-refresh" aria-hidden="true"></i> 清洗转换
                 </button>
+                <button id="assistantButton">
+                    <i class="fa fa-comments" aria-hidden="true"></i> AI转换
+                </button>
                 <button class="copy-button" onclick="copyToClipboard()">
                     <i class="fa fa-copy" aria-hidden="true"></i> 一键复制
                 </button>
             </div>
         </div>
+        <div class="ai-usage-hint">
+                <i class="fa fa-leaf" aria-hidden="true" style="color: #a098aa;"></i> 
+                对于期刊、专著等常见文献请先使用“清洗转换”，无法识别再使用AI转换（孩子穷，API额度省着点花 QAQ）
+            </div>
 
         <div class="card">
             <h3>
@@ -394,9 +401,6 @@
             <div class="button-container">
                 <button onclick="openReferenceTool()">
                     <i class="fa fa-sort-numeric-asc" aria-hidden="true"></i> 一键编号/排序工具
-                </button>
-                <button id="assistantButton">
-                    <i class="fa fa-comments" aria-hidden="true"></i> 法学引注小助手
                 </button>
                 <button onclick="openEndNoteTool()">
                     <i class="fa fa-exchange" aria-hidden="true"></i> EndNote转法学引注
