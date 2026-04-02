@@ -1,18 +1,19 @@
-// 【第一部分：基础配置】确保 index.html 调用的变量和函数是全局可见的
-var cleanedTextData = ""; 
-
-// 【第二部分：核心转换逻辑】
-function convertAndDisplayWithCleanedText() {
-    if (!cleanedTextData) {
-        console.log("没有接收到清洗后的数据");
+// 【第一部分：核心转换逻辑】
+// 修改点：给函数加上参数 textToConvert，直接接收 index.html 传来的数据
+function convertAndDisplayWithCleanedText(textToConvert) {
+    if (!textToConvert) {
+        console.log("没有接收到数据");
         return;
     }
-    const inputCitationArray = cleanedTextData.split('\n');
+    
+    // 使用传入的参数进行切割
+    const inputCitationArray = textToConvert.split('\n');
     let outputCitations = '';
 
     // 遍历转换
     inputCitationArray.forEach(inputCitation => {
         const outputCitation = convertCitation(inputCitation.trim().replace(/;/g, '、'));
+        // 修正标点逻辑并累加
         outputCitations += outputCitation.replace(/([^\x00-\xff]),([^\x00-\xff])/g, '$1、$2') + '\n';
     });
 
@@ -21,7 +22,6 @@ function convertAndDisplayWithCleanedText() {
         outputTextarea.value = outputCitations.trim();
     }
 }
-
 // 【第三部分：工具函数】跳转及复制功能
 function openReferenceTool() {
     window.open('https://pegaseius.github.io/lawschoolreferencetest/', '_blank'); 
