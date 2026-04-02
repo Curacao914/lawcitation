@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>法学论文引用格式转换器</title>
+    <title>法学引注小助手</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
     <style>
         /* 全局样式保持不变 */
@@ -341,37 +341,6 @@
             <h1 class="page-title">
                 <i class="fa fa-book" aria-hidden="true"></i> 法学论文引用格式转换器
             </h1>
-            <button class="settings-btn" id="settingsBtn">
-                <i class="fa fa-cog" aria-hidden="true"></i>
-            </button>
-        </div>
-
-        <div class="api-config-container" id="apiConfigContainer">
-            <div class="api-config-card">
-                <button class="close-api-config" id="closeApiConfig">
-                    <i class="fa fa-times" aria-hidden="true"></i>
-                </button>
-                <h3 style="color: #3a2e5c; margin-bottom: 12px;">
-                    <i class="fa fa-key" aria-hidden="true"></i> API Key配置
-                </h3>
-                <div class="api-input-group">
-                    <input 
-                        type="password" 
-                        id="apiKeyInput" 
-                        class="api-input" 
-                        placeholder="请输入您的百炼API Key（仅本地存储）"
-                    >
-                    <button id="saveApiKeyBtn">
-                        <i class="fa fa-save" aria-hidden="true"></i> 保存
-                    </button>
-                </div>
-                <p class="api-hint">
-                    提示：API Key仅存储在您的浏览器本地，不会上传至服务器；保存后下次打开无需重复填写
-                </p>
-                <span id="apiStatus" class="api-status status-empty">
-                    <i class="fa fa-info-circle" aria-hidden="true"></i> 尚未配置API Key
-                </span>
-            </div>
         </div>
 
         <div class="card">
@@ -436,68 +405,13 @@
         </div>
 
         <div class="copyright-info">
-            作者：中南大刑司学院+北大法学院Curacao | 
+            作者：北大法学院Curacao | 
             改编自南大法学院Chollima <a href="https://pegaseius.github.io/faxuezhuan/" target="_blank">格式转换器</a> | 
             <a href="https://xiaohongshu.com/user/profile/3895712578" target="_blank">小红书：中单兔法师</a>
         </div>
     </div>
 
     <script>
-        // 设置按钮交互
-        document.addEventListener('DOMContentLoaded', function() {
-            const settingsBtn = document.getElementById('settingsBtn');
-            const apiConfigContainer = document.getElementById('apiConfigContainer');
-            const closeApiConfig = document.getElementById('closeApiConfig');
-
-            settingsBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                apiConfigContainer.classList.toggle('active');
-            });
-
-            closeApiConfig.addEventListener('click', function(e) {
-                e.stopPropagation();
-                apiConfigContainer.classList.remove('active');
-            });
-
-            document.addEventListener('click', function(event) {
-                if (!apiConfigContainer.contains(event.target) && 
-                    event.target!== settingsBtn) {
-                    apiConfigContainer.classList.remove('active');
-                }
-            });
-
-            apiConfigContainer.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-        });
-
-        // API Key配置
-        const apiKeyInput = document.getElementById('apiKeyInput');
-        const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
-        const apiStatus = document.getElementById('apiStatus');
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedApiKey = localStorage.getItem('baiLianApiKey');
-            if (savedApiKey) {
-                apiKeyInput.value = savedApiKey;
-                apiStatus.className = 'api-status status-success';
-                apiStatus.innerHTML = '<i class="fa fa-check-circle" aria-hidden="true"></i> API Key已配置';
-            }
-        });
-
-        saveApiKeyBtn.addEventListener('click', function() {
-            const apiKey = apiKeyInput.value.trim();
-            if (apiKey) {
-                localStorage.setItem('baiLianApiKey', apiKey);
-                apiStatus.className = 'api-status status-success';
-                apiStatus.innerHTML = '<i class="fa fa-check-circle" aria-hidden="true"></i> API Key保存成功！';
-                alert('API Key已成功保存');
-            } else {
-                localStorage.removeItem('baiLianApiKey');
-                apiStatus.className = 'api-status status-empty';
-                apiStatus.innerHTML = '<i class="fa fa-warning" aria-hidden="true"></i> API Key不能为空';
-            }
-        });
 
         // 工具跳转
         function openEndNoteTool() {
@@ -650,50 +564,44 @@
         });
 
         // AI调用功能
-        document.getElementById('assistantButton').addEventListener('click', function () {
-            const inputText = document.getElementById('inputCitations').value.trim();
-            const savedApiKey = localStorage.getItem('baiLianApiKey');
+document.getElementById('assistantButton').addEventListener('click', function () {
+    const inputText = document.getElementById('inputCitations').value.trim();
 
-            if (!inputText) {
-                alert('请先输入需要处理的引用文本！');
-                return;
-            }
-            if (!savedApiKey) {
-                alert('请先在设置中填写并保存您的API Key！');
-                document.getElementById('settingsBtn').click();
-                document.getElementById('apiKeyInput').focus();
-                return;
-            }
+    if (!inputText) {
+        alert('请先输入需要处理的引用文本！');
+        return;
+    }
 
-            const button = this;
-            const originalText = button.innerHTML;
-            button.innerHTML = '<i class="fa fa-spinner fa-spin" aria-hidden="true"></i> 处理中...';
-            button.disabled = true;
-            document.getElementById('outputTextarea').value = 'AI正在处理，请稍候...';
+    const button = this;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fa fa-spinner fa-spin" aria-hidden="true"></i> 处理中...';
+    button.disabled = true;
+    document.getElementById('outputTextarea').value = 'AI正在处理，请稍候...';
 
-            fetch('https://curacao914-citation.hf.space/api/call-ai', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-API-Key': savedApiKey
-                },
-                body: JSON.stringify({ prompt: inputText }),
-            })
-           .then(response => {
-                if (!response.ok) throw new Error('API调用失败');
-                return response.json();
-            })
-           .then(data => {
-                document.getElementById('outputTextarea').value = data.response || '未获取到结果';
-            })
-           .catch(error => {
-                document.getElementById('outputTextarea').value = `处理失败：${error.message}`;
-            })
-           .finally(() => {
-                button.innerHTML = originalText;
-                button.disabled = false;
-            });
-        });
+    // 注意：这里的 URL 请换成你实际的 HF Space 地址
+    fetch('https://curacao914-citation.hf.space/api/call-ai', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+            // 已经删除了 'X-API-Key'，因为后端自己有环境变量了
+        },
+        body: JSON.stringify({ prompt: inputText }),
+    })
+   .then(response => {
+        if (!response.ok) throw new Error('API调用失败');
+        return response.json();
+    })
+   .then(data => {
+        document.getElementById('outputTextarea').value = data.response || '未获取到结果';
+    })
+   .catch(error => {
+        document.getElementById('outputTextarea').value = `处理失败：${error.message}`;
+    })
+   .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+});
     </script>
     <script src="main.js"></script>
 </body>
