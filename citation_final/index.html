@@ -324,7 +324,22 @@
             from { transform: translate(-50%, -50%) scale(0); opacity: 1; }
             to { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
         }
-
+        /* AI 转换按钮下方提示语样式 */
+        .ai-usage-hint {
+            text-align: center;
+            font-size: 12px;
+            color: #887a9c;
+            margin-top: 15px;
+            padding: 8px 15px;
+            background: linear-gradient(90deg, transparent, rgba(112, 30, 94, 0.04), transparent);
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+        }
+        
+        .ai-usage-hint:hover {
+            color: #5a184a;
+        }
         @media (max-width: 768px) {
             .page-title {
                 font-size: 20px;
