@@ -464,21 +464,26 @@
         });
 
         function convertAndDisplay() {
-            // 1. 获取清洗后的文本
-            let cleanedText = transformText();
-            
-            // 2. 检查函数是否存在
+            const inputField = document.getElementById("inputCitations");
+            const outputField = document.getElementById('outputTextarea');
+            let rawText = inputField.value;
+
+            if (!rawText.trim()) {
+                alert("请先输入引注内容！");
+                return;
+            }
+
+            // 清空输出框，防止旧数据干扰，让你肉眼能看到它动了
+            outputField.value = "正在处理...";
+
+            // 检查 main.js 是否加载，并直接调用
             if (typeof convertAndDisplayWithCleanedText === "function") {
-                try {
-                    // 直接把清洗后的文本作为参数传给 main.js 的函数
-                    convertAndDisplayWithCleanedText(cleanedText);
-                } catch (error) {
-                    console.error("执行转换时出错:", error);
-                    document.getElementById('outputTextarea').value = cleanedText;
-                }
+                console.log("正在调用 main.js 转换逻辑...");
+                convertAndDisplayWithCleanedText(rawText);
             } else {
-                console.warn("main.js 尚未加载完成，显示原始清洗结果");
-                document.getElementById('outputTextarea').value = cleanedText;
+                console.error("致命错误：main.js 未成功加载！");
+                alert("转换脚本加载失败，请按 Cmd+Shift+R 强制刷新页面！");
+                outputField.value = rawText; // 只有在加载失败时才复读
             }
         }
 
