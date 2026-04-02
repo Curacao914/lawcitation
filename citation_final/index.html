@@ -429,40 +429,259 @@
             <a href="https://xiaohongshu.com/user/profile/3895712578" target="_blank">小红书：中单兔法师</a>
         </div>
     </div>
-
     <script>
+        /************************************************
+         * 1. 核心转换逻辑 (原 main.js 内容，内嵌化)
+         ************************************************/
+        function convertAndDisplayWithCleanedText(textToConvert) {
+            if (!textToConvert) return;
+            const lines = textToConvert.split('\n');
+            let outputCitations = [];
 
-        // 工具跳转
-        function openEndNoteTool() {
-            window.open('https://pegaseius.github.io/endnote/', '_blank');
+            lines.forEach(line => {
+                if (!line.trim()) return;
+                // 预处理：去掉序号、空格，统一半角符号
+                let processedLine = line.trim()
+                    .replace(/^\s*(\[\d+\]|\d+\.|\(\d+\)|\d+\))\s*/, "")
+                    .replace(/[\s　]+/g, "")
+                    .replace(/：/g, ':').replace(/，/g, ',').replace(/；/g, ';')
+                    .replace(/（/g, '(').replace(/）/g, ')').replace(/［/g, '[').replace(/］/g, ']')
+                    .replace(/．/g, '.');
+                
+                // 补全末尾点号（正则强依赖）
+                if (!processedLine.endsWith('.')) {
+                    processedLine = processedLine.replace(/。$/, '') + '.';
+                }
+
+                const result = convertCitation(processedLine);
+                outputCitations.push(result);
+            });
+            document.getElementById('outputTextarea').value = outputCitations.join('\n');
         }
 
-        function openReferenceTool() {
-            window.open('https://pegaseius.github.io/lawschoolreferencetest/', '_blank');
+        function convertCitation(inputCitation) {
+            const regexWithPages = /^(.+?)\.(.+?)\[(.+?)\]\.(.+?),(\d{4})\((\d{1,2})\):(\d+)-(\d+)\.$/;
+            const regexWith1Page = /^(.+?)\.(.+?)\[(.+?)\]\.(.+?),(\d{4})\((\d{1,2})\):(\d+)\.$/;
+            const regexWithoutPages = /^(.+?)\.(.+?)\[(.+?)\]\.(.+?),(\d{4})\((\d{1,2})\)\.$/;
+            const regexWithPagesandv = /^(.+?)\.(.+?)\[(.+?)\]\.(.+?),(\d{4}),(\d{1,2})\((\d{1,2})\):(\d+)-(\d+)\.$/;
+            const regexzhiwangqikan = /^(.*?)\[(.*?)\]\.(.*?)\.(.*?)\,(.*?)\((.*?)\)/;
+            const regexPublisher = /^(.+?)\.(.+?)\[M\]\.([^:,]+):([^,]+),(\d{4})\.$/;
+            const regexzhiwangdegree = /^(.+?)\[(\w)\]\.\s*(.+?)\.(.+?),(\d+)$/;
+
+            let match;
+            match = inputCitation.match(regexWithPages);
+            if (match) return `${match[1]}：《${match[2]}》，载《${match[4]}》${match[5]}年第${parseInt(match[6], 10)}期，第${match[7]}~${match[8]}页。`;
+            
+            match = inputCitation.match(regexWith1Page);
+            if (match) return `${match[1]}：《${match[2]}》，载《${match[4]}》${match[5]}年第${parseInt(match[6], 10)}期，第${match[7]}页。`;
+            
+            match = inputCitation.match(regexWithoutPages);
+            if (match) return `${match[1]}：《${match[2]}》，载《${match[4]}》${match[5]}年第${parseInt(match[6], 10)}期。`;
+
+            match = inputCitation.match(regexzhiwangqikan);
+            if (match) return `${match[3]}：《${match[1]}》，载《${match[4]}》${match[5]}年第${parseInt(match[6], 10)}期。`;
+
+            match = inputCitation.match(regexPublisher);
+            if (match) return `${match[1]}：《${match[2]}》，${match[4]}${match[5]}年版。`;
+
+            match = inputCitation.match(regexzhiwangdegree);
+            if (match) return `${match[3]}：《${match[1]}》，${match[4]}${match[5]}年博士论文。`;
+
+            return "【无法识别的引用格式】";
         }
 
-        // 复选框全选逻辑（仅针对保留的选项）
+        /************************************************
+         * 2. 工具跳转与 UI 逻辑 (保留并整合)
+         ************************************************/
+        function openEndNoteTool() { window.open('https://pegaseius.github.io/endnote/', '_blank'); }
+        function openReferenceTool() { window.open('https://pegaseius.github.io/lawschoolreferencetest/', '_blank'); }
+
         function toggleAllCheckboxes() {
-            const selectAllCheckbox = document.getElementById("selectAll");
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]:not(#selectAll)');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = selectAllCheckbox.checked;
-            });
+            const selectAll = document.getElementById("selectAll");
+            document.querySelectorAll('input[type="checkbox"]:not(#selectAll)').forEach(cb => cb.checked = selectAll.checked);
         }
 
+        // 按钮点击主入口
+        function convertAndDisplay() {
+            const rawText = document.getElementById("inputCitations").value;
+            if (!rawText.trim()) { alert("请先输入内容！"); return; }
+            convertAndDisplayWithCleanedText(rawText);
+        }
+
+        // 复制功能
+        function copyToClipboard() {
+            const output = document.getElementById('outputTextarea');
+            if (!output.value.trim()) { alert('转换结果为空！'); return; }
+            output.select();
+            document.execCommand('copy');
+            alert("复制成功！");
+        }
+
+        /************************************************
+         * 3. 页面初始化与 AI 功能 (保留并整合)
+         ************************************************/
         document.addEventListener("DOMContentLoaded", function () {
-            const selectAllCheckbox = document.getElementById('selectAll');
-            const otherCheckboxes = document.querySelectorAll('input[type="checkbox"]:not(#selectAll)');
+            // 全选监听
+            const selectAll = document.getElementById('selectAll');
+            selectAll.addEventListener('change', toggleAllCheckboxes);
+            
+            // AI 转换按钮
+            document.getElementById('assistantButton').addEventListener('click', function () {
+                const inputText = document.getElementById('inputCitations').value.trim();
+                if (!inputText) { alert('请先输入文本！'); return; }
 
-            selectAllCheckbox.addEventListener('change', toggleAllCheckboxes);
-            otherCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    selectAllCheckbox.checked = Array.from(otherCheckboxes).every(cb => cb.checked);
-                });
+                const button = this;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fa fa-spinner fa-spin"></i> 处理中...';
+                button.disabled = true;
+                
+                fetch('https://curacao914-citation.hf.space/api/call-ai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: inputText }),
+                })
+                .then(res => res.json())
+                .then(data => { document.getElementById('outputTextarea').value = data.response || '未获取到结果'; })
+                .catch(err => { document.getElementById('outputTextarea').value = `处理失败：${err.message}`; })
+                .finally(() => { button.innerHTML = originalText; button.disabled = false; });
             });
-            selectAllCheckbox.dispatchEvent(new Event('change'));
         });
+    </script>
+    <script>
+        /**
+ * 第一部分：数据接收与预处理
+ * 逻辑：接收 index.html 传来的原始文本，进行标准化清洗，然后调用正则匹配
+ */
+function convertAndDisplayWithCleanedText(textToConvert) {
+    console.log("【调试】main.js 已接收到数据");
+    
+    if (!textToConvert || textToConvert.trim() === "") {
+        console.log("【调试】接收数据为空");
+        return;
+    }
+    
+    const lines = textToConvert.split('\n');
+    let outputCitations = [];
 
+    lines.forEach((line, index) => {
+        if (!line.trim()) return;
+
+        // 1. 基础清洗：去掉序号、空格，统一半角符号
+        let processedLine = line.trim()
+            .replace(/^\s*(\[\d+\]|\d+\.|\(\d+\)|\d+\))\s*/, "") // 去掉 [1] 或 1. 这种序号
+            .replace(/[\s　]+/g, "") // 去掉所有半角和全角空格
+            .replace(/：/g, ':').replace(/，/g, ',').replace(/；/g, ';')
+            .replace(/（/g, '(').replace(/）/g, ')').replace(/［/g, '[').replace(/］/g, ']')
+            .replace(/．/g, '.');
+        
+        // 2. 补全末尾点号：正则库强依赖结尾的英文点号
+        if (!processedLine.endsWith('.')) {
+            processedLine = processedLine.replace(/。$/, '') + '.';
+        }
+
+        console.log(`【调试】第 ${index + 1} 行清洗后内容: ${processedLine}`);
+
+        // 3. 执行正则转换
+        const result = convertCitation(processedLine);
+        outputCitations.push(result);
+    });
+
+    // 4. 将最终结果写入页面
+    const outputField = document.getElementById('outputTextarea');
+    if (outputField) {
+        outputField.value = outputCitations.join('\n');
+        console.log("【调试】结果已写入文本框");
+    } else {
+        console.error("【错误】找不到 outputTextarea 元素");
+    }
+}
+
+/**
+ * 第二部分：基础功能函数
+ */
+function openReferenceTool() {
+    window.open('https://pegaseius.github.io/lawschoolreferencetest/', '_blank'); 
+}
+
+function copyToClipboard() {
+    const outputTextarea = document.getElementById('outputTextarea');
+    const text = outputTextarea ? outputTextarea.value.trim() : "";
+
+    if (!text) {
+        alert('转换结果为空，无法复制！');
+        return;
+    }
+
+    const tempTextArea = document.createElement('textarea');
+    tempTextArea.value = text;
+    document.body.appendChild(tempTextArea);
+    tempTextArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(tempTextArea);
+
+    const copyBtn = document.querySelector('.copy-button');
+    if (copyBtn) {
+        const originalText = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<i class="fa fa-check"></i> 复制完成';
+        setTimeout(() => { copyBtn.innerHTML = originalText; }, 1500);
+    }
+}
+
+/**
+ * 第三部分：核心正则规则库 (convertCitation)
+ * 逻辑：如果匹配成功则返回法学格式，全部匹配失败则返回“无法识别”
+ */
+function convertCitation(inputCitation) {
+    // 所有的正则表达式定义
+    const regexWithPages = /^(.+?)\.(.+?)\[(.+?)\]\.(.+?),(\d{4})\((\d{1,2})\):(\d+)-(\d+)\.$/;
+    const regexWith1Page = /^(.+?)\.(.+?)\[(.+?)\]\.(.+?),(\d{4})\((\d{1,2})\):(\d+)\.$/;
+    const regexWithoutPages = /^(.+?)\.(.+?)\[(.+?)\]\.(.+?),(\d{4})\((\d{1,2})\)\.$/;
+    const regexWithPagesandv = /^(.+?)\.(.+?)\[(.+?)\]\.(.+?),(\d{4}),(\d{1,2})\((\d{1,2})\):(\d+)-(\d+)\.$/;
+    const regexWith1Pageandv = /^(.+?)\.(.+?)\[(.+?)\]\.(.+?),(\d{4}),(\d{1,2})\((\d{1,2})\):(\d+)\.$/;
+    const regexWithoutPagesandv = /^(.+?)\.(.+?)\[(.+?)\]\.(.+?),(\d{4}),(\d{1,2})\((\d{1,2})\)\.$/;
+    const regexzhiwangqikan = /^(.*?)\[(.*?)\]\.(.*?)\.(.*?)\,(.*?)\((.*?)\)/;
+    const regexPublisher = /^(.+?)\.(.+?)\[M\]\.([^:,]+):([^,]+),(\d{4})\.$/;
+    const regexPublisherwithpages = /^(.+?)\.(.+?)\[M\]\.(.+?):(.+?),(\d+):(\d+)-(\d+)\.$/;
+    const regexPublisherwith1page = /^(.+?)\.(.+?)\[(M)\]\.(.+?):(.+?),(\d+):(\d+)\.$/;
+    const regexzhiwangbookz = /^(.*?)\[(.*?)\]\.(.*?)(著)\.(.*?)\.(.*)/;
+    const regexzhiwangbookzb = /^(.*?)\[(.*?)\]\.(.*?)(主编)\.(.*?)\.(.*)/;
+    const regexzhiwangbook = /^(.*?)\[(.*?)\]\.(.*?)\.(.*?)\.(.*)/;
+    const regexDegree = /^(.+?)\.(.+?)\[(D)\]\.(.+?):(.+?),(\d+)\.$/;
+    const regexDegreewithpages = /^(.+?)\.(.+?)\[(D)\]\.(.+?):(.+?),(\d+):(\d+)-(\d+)\.$/;
+    const regexDegreewith1page = /^(.+?)\.(.+?)\[(D)\]\.(.+?):(.+?),(\d+):(\d+)\.$/;
+    const regexzhiwangdegree = /^(.+?)\[(\w)\]\.\s*(.+?)\.(.+?),(\d+)$/;
+
+    let match;
+    // 期刊类匹配
+    match = inputCitation.match(regexWithPages);
+    if (match) return `${match[1]}：《${match[2]}》，载《${match[4]}》${match[5]}年第${parseInt(match[6], 10)}期，第${match[7]}~${match[8]}页。`;
+    
+    match = inputCitation.match(regexWith1Page);
+    if (match) return `${match[1]}：《${match[2]}》，载《${match[4]}》${match[5]}年第${parseInt(match[6], 10)}期，第${match[7]}页。`;
+    
+    match = inputCitation.match(regexWithoutPages);
+    if (match) return `${match[1]}：《${match[2]}》，载《${match[4]}》${match[5]}年第${parseInt(match[6], 10)}期。`;
+    
+    match = inputCitation.match(regexWithPagesandv);
+    if (match) return `${match[1]}：《${match[2]}》，载《${match[4]}》${match[5]}年第${parseInt(match[6], 10)}卷第${parseInt(match[7], 10)}期，第${match[8]}~${match[9]}页。`;
+
+    match = inputCitation.match(regexzhiwangqikan);
+    if (match) return `${match[3]}：《${match[1]}》，载《${match[4]}》${match[5]}年第${parseInt(match[6], 10)}期。`;
+
+    // 著作类匹配
+    match = inputCitation.match(regexPublisher);
+    if (match) return `${match[1]}：《${match[2]}》，${match[4]}${match[5]}年版。`;
+
+    match = inputCitation.match(regexzhiwangbookz);
+    if (match) return `${match[3]}：《${match[1]}》，${match[5]}${match[6]}年版。`;
+
+    // 学位论文匹配
+    match = inputCitation.match(regexzhiwangdegree);
+    if (match) return `${match[3]}：《${match[1]}》，${match[4]}${match[5]}年博士论文。`;
+
+    // 如果所有正则都匹配失败，返回警告提示
+    return "【无法识别的引用格式】";
+}
         function convertAndDisplay() {
             const inputField = document.getElementById("inputCitations");
             const outputField = document.getElementById('outputTextarea');
@@ -473,166 +692,15 @@
                 return;
             }
 
-            // 清空输出框，防止旧数据干扰，让你肉眼能看到它动了
-            outputField.value = "正在处理...";
-
-            // 检查 main.js 是否加载，并直接调用
+            // 因为代码就在本文件内，这里绝对能找到函数
             if (typeof convertAndDisplayWithCleanedText === "function") {
-                console.log("正在调用 main.js 转换逻辑...");
+                console.log("正在执行内嵌转换逻辑...");
                 convertAndDisplayWithCleanedText(rawText);
             } else {
-                console.error("致命错误：main.js 未成功加载！");
-                alert("转换脚本加载失败，请按 Cmd+Shift+R 强制刷新页面！");
-                outputField.value = rawText; // 只有在加载失败时才复读
+                console.error("代码逻辑加载异常");
+                outputField.value = rawText;
             }
         }
-
-        // 基础清洗逻辑（仅保留需要的功能）
-        function transformText() {
-            const inputCitations = document.getElementById("inputCitations").value;
-            // 仅保留需要的选项（删除了全角数字转半角、移除多余标点等逻辑）
-            const removeNumbers = document.getElementById("removeNumbers").checked;
-            const removeSpaces = document.getElementById("removeSpaces").checked;
-            const convertSymbols = document.getElementById("convertSymbols").checked;
-
-            let lines = inputCitations.split("\n");
-            let output = [];
-
-            for (let line of lines) {
-                if (!line.trim()) continue;
-
-                // 1. 去除数字序号（行首的[1]、1.、(1)等）
-                if (removeNumbers) {
-                    line = line.replace(/^\s*(\[\d+\]|\d+\.|\(\d+\)|\d+\))\s*/, "").trim();
-                }
-
-                // 2. 去除空格（半角+全角）
-                if (removeSpaces) {
-                    line = line.replace(/[\s　]+/g, "");
-                }
-
-                // 3. 全角符号转半角（基础符号）
-                if (convertSymbols) {
-                    const symbolMap = {
-                        '：': ':', '。': '.', '，': ',', '；': ';',
-                        '（': '(', '）': ')', '［': '[', '］': ']', '．': '.'
-                    };
-                    let converted = '';
-                    for (let char of line) {
-                        converted += symbolMap[char] || char;
-                    }
-                    line = converted;
-                }
-
-                output.push(line);
-            }
-
-            return output.join("\n");
-        }
-
-        // 复制功能
-        function copyToClipboard() {
-            const outputTextarea = document.getElementById('outputTextarea');
-            const text = outputTextarea.value.trim();
-
-            if (!text) {
-                alert('转换结果为空，无法复制！');
-                return;
-            }
-
-            outputTextarea.select();
-            document.execCommand('copy');
-
-            const copyBtn = document.querySelector('.copy-button');
-            const originalText = copyBtn.innerHTML;
-            copyBtn.innerHTML = '<i class="fa fa-check" aria-hidden="true"></i> 复制成功！';
-            copyBtn.style.backgroundColor = '#2e7d32';
-
-            setTimeout(() => {
-                copyBtn.innerHTML = originalText;
-                copyBtn.style.backgroundColor = '#45a049';
-            }, 2000);
-        }
-
-        // 文本框交互
-        document.addEventListener("DOMContentLoaded", function () {
-            const inputCitations = document.getElementById('inputCitations');
-            const outputTextarea = document.getElementById('outputTextarea');
-
-            inputCitations.addEventListener('input', function () {
-                this.placeholder = this.value.trim()? '' : '请在此输入原始引用（每个文献一行）';
-            });
-
-            outputTextarea.addEventListener('input', function () {
-                this.placeholder = this.value.trim()? '' : '转换后的引用内容';
-            });
-        });
-
-        // 按钮涟漪效果
-        document.addEventListener("DOMContentLoaded", function () {
-            const buttons = document.querySelectorAll('button');
-            buttons.forEach(button => {
-                button.addEventListener('mousedown', function (e) {
-                    const x = e.pageX - this.getBoundingClientRect().left;
-                    const y = e.pageY - this.getBoundingClientRect().top;
-
-                    const ripple = document.createElement('span');
-                    ripple.style.position = 'absolute';
-                    ripple.style.width = '100%';
-                    ripple.style.height = '100%';
-                    ripple.style.top = `${y}px`;
-                    ripple.style.left = `${x}px`;
-                    ripple.style.borderRadius = '50%';
-                    ripple.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-                    ripple.style.animation = 'ripple 0.4s linear forwards';
-                    ripple.style.zIndex = '-1';
-
-                    this.appendChild(ripple);
-                    ripple.addEventListener('animationend', () => ripple.remove());
-                });
-            });
-        });
-
-        // AI调用功能
-document.getElementById('assistantButton').addEventListener('click', function () {
-    const inputText = document.getElementById('inputCitations').value.trim();
-
-    if (!inputText) {
-        alert('请先输入需要处理的引用文本！');
-        return;
-    }
-
-    const button = this;
-    const originalText = button.innerHTML;
-    button.innerHTML = '<i class="fa fa-spinner fa-spin" aria-hidden="true"></i> 处理中...';
-    button.disabled = true;
-    document.getElementById('outputTextarea').value = 'AI正在处理，请稍候...';
-
-    // 注意：这里的 URL 请换成你实际的 HF Space 地址
-    fetch('https://curacao914-citation.hf.space/api/call-ai', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-            // 已经删除了 'X-API-Key'，因为后端自己有环境变量了
-        },
-        body: JSON.stringify({ prompt: inputText }),
-    })
-   .then(response => {
-        if (!response.ok) throw new Error('API调用失败');
-        return response.json();
-    })
-   .then(data => {
-        document.getElementById('outputTextarea').value = data.response || '未获取到结果';
-    })
-   .catch(error => {
-        document.getElementById('outputTextarea').value = `处理失败：${error.message}`;
-    })
-   .finally(() => {
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
-});
     </script>
-    <script src="./main.js?v=1"></script>
 </body>
 </html>
