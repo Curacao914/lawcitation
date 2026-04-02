@@ -463,22 +463,29 @@
             selectAllCheckbox.dispatchEvent(new Event('change'));
         });
 
-// 核心：简化清洗逻辑，直接调用主处理函数
-        function convertAndDisplay() {
-            // 先进行基础文本清洗
+function convertAndDisplay() {
             let cleanedText = transformText();
             
-            // 直接调用 main.js 中的处理函数，抛弃不稳定的事件监听
-            try {
-                // 将数据赋予 main.js 的全局变量
-                cleanedTextData = cleanedText;
-                // 直接执行正则转换
-                convertAndDisplayWithCleanedText();
-            } catch (error) {
-                console.error("转换出错或 main.js 未加载:", error);
-                alert("组件加载存在延迟，请强制刷新网页（按 Ctrl+F5 或 Mac按 Cmd+Shift+R）清除浏览器缓存后再试！");
-                // 如果正则模块罢工了，至少把清洗后的文本显示出来兜底
-                document.getElementById('outputTextarea').value = cleanedText; 
+            // 检查 main.js 是否已经加载了必要的函数
+            if (typeof convertAndDisplayWithCleanedText === "function") {
+                try {
+                    cleanedTextData = cleanedText;
+                    convertAndDisplayWithCleanedText();
+                } catch (error) {
+                    console.error("执行转换时出错:", error);
+                    document.getElementById('outputTextarea').value = cleanedText;
+                }
+            } else {
+                // 如果还没加载完，先显示清洗后的结果，并提示用户
+                console.warn("main.js 尚未加载完成");
+                document.getElementById('outputTextarea').value = cleanedText;
+                // 不再弹窗干扰用户，改为在后台重试一次
+                setTimeout(() => {
+                    if (typeof convertAndDisplayWithCleanedText === "function") {
+                        cleanedTextData = cleanedText;
+                        convertAndDisplayWithCleanedText();
+                    }
+                }, 500);
             }
         }
 
