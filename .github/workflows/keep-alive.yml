@@ -2,7 +2,7 @@ name: Keep HF Space Alive
 
 on:
   schedule:
-    # 每天北京时间 8:00 和 20:00 自动执行
+    # 每天北京时间8:00和20:00自动执行
     - cron: "0 0,12 * * *"
   workflow_dispatch: # 允许手动点击运行
 
