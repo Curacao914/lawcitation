@@ -5,10 +5,12 @@ from dashscope import Application
 from http import HTTPStatus
 import requests
 from requests.adapters import HTTPAdapter, Retry
-from config import API_KEY
 
 app = Flask(__name__)
 CORS(app)
+
+# 动态从系统环境变量获取百炼 API Key
+API_KEY = os.environ.get("DASHSCOPE_API_KEY")
 
 # 创建请求会话，配置重试机制
 session = requests.Session()
@@ -45,8 +47,7 @@ def call_ai():
         return jsonify({"error": f"Internal Server Error: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
-
+    app.run(host='0.0.0.0', port=7860)
 
 
 
