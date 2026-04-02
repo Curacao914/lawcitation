@@ -54,6 +54,3 @@ if __name__ == '__main__':
 @app.route('/test-api')
 def test_api():
     return jsonify({"message": "Test API is working!"})
-
-print(api_response)
-print(api_response.output.text)
