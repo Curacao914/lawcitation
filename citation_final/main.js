@@ -1,24 +1,38 @@
-// 【第一部分：基础配置】确保 index.html 调用的变量和函数是全局可见的
-var cleanedTextData = ""; 
+// 【第一部分：监听信号】
+// 这里的逻辑是：一旦监听到 index.html 发出的 'cleanedTextAvailable' 信号，就执行转换
+document.addEventListener('cleanedTextAvailable', function (e) {
+    // 从信号的“口袋”（detail）里取出清洗后的文本
+    const cleanedText = e.detail.cleanedText;
+    console.log("【调试】main.js 已接收到信号，开始转换...");
+    
+    // 调用下方的处理函数
+    convertAndDisplayWithCleanedText(cleanedText);
+});
 
 // 【第二部分：核心转换逻辑】
-function convertAndDisplayWithCleanedText() {
-    if (!cleanedTextData) {
+function convertAndDisplayWithCleanedText(data) {
+    if (!data) {
         console.log("没有接收到清洗后的数据");
         return;
     }
-    const inputCitationArray = cleanedTextData.split('\n');
+    
+    // 将传入的数据分行处理
+    const inputCitationArray = data.split('\n');
     let outputCitations = '';
 
     // 遍历转换
     inputCitationArray.forEach(inputCitation => {
+        // 调用你下方的正则库 convertCitation 进行匹配
         const outputCitation = convertCitation(inputCitation.trim().replace(/;/g, '、'));
+        
+        // 修正标点符号：将中文字符间的英文逗号转为顿号
         outputCitations += outputCitation.replace(/([^\x00-\xff]),([^\x00-\xff])/g, '$1、$2') + '\n';
     });
 
     const outputTextarea = document.getElementById('outputTextarea');
     if (outputTextarea) {
         outputTextarea.value = outputCitations.trim();
+        console.log("【调试】转换结果已写入页面");
     }
 }
 
