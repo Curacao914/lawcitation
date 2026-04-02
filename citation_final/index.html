@@ -478,6 +478,12 @@ function convertAndDisplay() {
             const removeSpaces = document.getElementById("removeSpaces").checked;
             const convertSymbols = document.getElementById("convertSymbols").checked;
 
+            // 在不改变当前 UI 的前提下，恢复旧版的 4 个清洗能力（默认开启）
+            const convertNumbers = true;
+            const removeExtraPunctuation = true;
+            const splitJumpCitationsEnabled = true;
+            const removeDOIEnabled = true;
+
             let lines = inputCitations.split("\n");
             let output = [];
 
@@ -507,10 +513,61 @@ function convertAndDisplay() {
                     line = converted;
                 }
 
+                // 4. 全角数字转半角
+                if (convertNumbers) {
+                    line = convertFullwidthNumbersToHalfwidth(line);
+                }
+
+                // 5. 移除冗余标点
+                if (removeExtraPunctuation) {
+                    line = removeRedundantPunctuation(line);
+                }
+
+                // 6. 拆分跳跃引注
+                if (splitJumpCitationsEnabled) {
+                    line = splitJumpCitations(line);
+                }
+
+                // 7. 去除 DOI
+                if (removeDOIEnabled) {
+                    line = removeDOI(line);
+                }
+
                 output.push(line);
             }
 
             return output.join("\n");
+        }
+
+        function convertFullwidthNumbersToHalfwidth(line) {
+            return line.replace(/[０-９]/g, char => String.fromCharCode(char.charCodeAt(0) - 0xFEE0));
+        }
+
+        function removeRedundantPunctuation(line) {
+            line = line.replace(/(?<=\d),(?=\()/g, "");
+            line = line.replace(/;{2,}/g, ";");
+            line = line.replace(/,{2,}/g, ",");
+            line = line.replace(/\.{2,}/g, ".");
+            return line;
+        }
+
+        function splitJumpCitations(line) {
+            const jumpCitationPattern = /\+(\d+(?:-\d+)?)/g;
+            let match;
+            let baseText = line.replace(jumpCitationPattern, '');
+            let additionalLines = "";
+
+            jumpCitationPattern.lastIndex = 0;
+            while ((match = jumpCitationPattern.exec(line)) !== null) {
+                let preText = line.substring(0, line.lastIndexOf(":", match.index) + 1);
+                additionalLines += preText + match[1] + ".\n";
+            }
+
+            return baseText + (additionalLines ? "\n" + additionalLines : "");
+        }
+
+        function removeDOI(line) {
+            return line.replace(/DOI:.*/, "");
         }
 
         // 复制功能
@@ -616,6 +673,6 @@ document.getElementById('assistantButton').addEventListener('click', function ()
     });
 });
     </script>
-    <script src="main.js"></script>
+    <script src="./main.js?inline"></script>
 </body>
 </html>
