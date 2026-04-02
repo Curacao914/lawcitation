@@ -1,0 +1,320 @@
+/* 全局重置与基础样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', 'Arial', sans-serif;
+}
+
+body {
+    /* 渐变背景优化：更柔和的紫色系渐变 */
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9e6f0 100%) fixed;
+    background-size: cover;
+    background-attachment: fixed;
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding-bottom: 80px; /* 为底部版权信息预留空间 */
+}
+
+/* 容器样式：卡片式布局核心 */
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 标题样式 */
+.page-title {
+    text-align: center;
+    color: #3a2e5c;
+    margin: 30px 0;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    position: relative;
+}
+
+.page-title::after {
+    content: '';
+    display: block;
+    width: 80px;
+    height: 3px;
+    background-color: #701e5e;
+    margin: 10px auto;
+    border-radius: 3px;
+}
+
+/* 卡片组件样式：统一包裹所有功能模块 */
+.card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 25px;
+    margin-bottom: 25px;
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* 文本区域样式优化 */
+textarea {
+    width: 100%;
+    height: 140px;
+    padding: 15px;
+    font-size: 16px;
+    border-radius: 12px;
+    border: 2px solid #e0d8e8;
+    margin: 0 auto 20px;
+    display: block;
+    resize: vertical;
+    background-color: #fdfdfe;
+    transition: all 0.3s ease;
+    line-height: 1.6;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: #701e5e;
+    box-shadow: 0 0 0 3px rgba(112, 30, 94, 0.1);
+}
+
+textarea::placeholder {
+    color: #a098aa;
+    font-style: italic;
+}
+
+/* 按钮基础样式：统一风格 */
+button {
+    background-color: #701e5e;
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block; /* 改为行内块，方便按钮组布局 */
+    font-size: 16px;
+    margin: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    box-shadow: 0 3px 6px rgba(112, 30, 94, 0.2);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: #5a184a;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(112, 30, 94, 0.3);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(112, 30, 94, 0.2);
+}
+
+/* 复制按钮样式：保留特殊标识 */
+.copy-button {
+    background-color: #45a049;
+}
+
+.copy-button:hover {
+    background-color: #3a863e;
+    box-shadow: 0 5px 12px rgba(69, 160, 73, 0.3);
+}
+
+/* 按钮组容器：统一按钮排列 */
+.button-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; /* 自适应换行，适配小屏幕 */
+    margin: 15px 0;
+}
+
+/* 复选框区域样式：优化排版 */
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px 25px; /* 行列间距 */
+    padding: 15px;
+    background-color: #f9f7fb;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: #3a2e5c;
+    font-size: 15px;
+}
+
+/* 复选框样式优化 */
+input[type="checkbox"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #701e5e;
+    border-radius: 4px;
+    margin-right: 8px;
+    cursor: pointer;
+    outline: none;
+    position: relative;
+    vertical-align: middle;
+    transition: all 0.2s ease;
+}
+
+input[type="checkbox"]:checked {
+    background-color: #701e5e;
+    border-color: #701e5e;
+}
+
+input[type="checkbox"]:checked::before {
+    content: '\2713';
+    font-size: 14px;
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+input[type="checkbox"]:hover {
+    border-color: #5a184a;
+}
+
+/* API Key配置区域样式 */
+.api-config-card {
+    background-color: #f9f7fb;
+    border-left: 4px solid #701e5e;
+}
+
+.api-input-group {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.api-input {
+    flex: 1; /* 输入框占满剩余空间 */
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 2px solid #e0d8e8;
+    font-size: 15px;
+    transition: all 0.3s ease;
+}
+
+.api-input:focus {
+    outline: none;
+    border-color: #701e5e;
+    box-shadow: 0 0 0 3px rgba(112, 30, 94, 0.1);
+}
+
+.api-hint {
+    font-size: 14px;
+    color: #666;
+    margin-top: 8px;
+    line-height: 1.5;
+}
+
+.api-status {
+    font-size: 14px;
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: inline-block;
+}
+
+.status-success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-empty {
+    background-color: #fff3e0;
+    color: #e65100;
+}
+
+/* 访客统计样式 */
+.visitor-count {
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    margin: 15px 0;
+}
+
+/* 版权信息样式优化 */
+.copyright-info {
+    text-align: center;
+    font-size: 13px;
+    color: #888;
+    padding: 12px 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.copyright-info a {
+    color: #701e5e;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.copyright-info a:hover {
+    color: #5a184a;
+    text-decoration: underline;
+}
+
+/* 涟漪动画样式（保留原有功能） */
+@keyframes ripple {
+    from {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+    to {
+        transform: translate(-50%, -50%) scale(2.5);
+        opacity: 0;
+    }
+}
+
+/* 响应式适配：小屏幕优化 */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .page-title {
+        font-size: 24px;
+    }
+    
+    .card {
+        padding: 18px;
+    }
+    
+    .button-container {
+        flex-direction: column; /* 按钮垂直排列 */
+        align-items: center;
+    }
+    
+    button {
+        width: 100%;
+        margin: 5px 0;
+    }
+    
+    .api-input-group {
+        flex-direction: column;
+    }
+    
+    .checkbox-group {
+        gap: 12px 15px;
+    }
+}
